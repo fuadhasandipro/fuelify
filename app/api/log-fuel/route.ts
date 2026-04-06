@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase-server';
-import { generateReturnSchedule } from '@/lib/schedule';
+import { generateReturnSchedule, getBDTimeIsoString } from '@/lib/schedule';
 
 export async function POST(req: NextRequest) {
   const { plateNumber, plateImageUrl, vehicleType, fuelType, pumpStationId, operatorId } =
@@ -27,10 +27,10 @@ export async function POST(req: NextRequest) {
       fuel_type: fuelType ?? 'petrol',
       pump_station_id: pumpStationId,
       operator_id: operatorId ?? null,
-      fueled_at: now.toISOString(),
-      next_allowed_at: schedule.nextAllowedAt.toISOString(),
+      fueled_at: getBDTimeIsoString(now),
+      next_allowed_at: getBDTimeIsoString(schedule.nextAllowedAt),
       scheduled_slot: schedule.slotLabel,
-      scheduled_date: schedule.returnDate.toISOString().split('T')[0],
+      scheduled_date: schedule.bdDateString,
     })
     .select()
     .single();

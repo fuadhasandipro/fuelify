@@ -1,23 +1,34 @@
 export type TimeSlot = 'A' | 'B' | 'C';
 
+export function getBDTimeIsoString(date: Date): string {
+  const BD_OFFSET_MS = 6 * 60 * 60 * 1000;
+  const bdDate = new Date(date.getTime() + BD_OFFSET_MS);
+  return bdDate.toISOString().replace('Z', '') + '+06:00';
+}
+
 export const TIME_WINDOWS = {
   A: { label: 'সকাল ১০টা – দুপুর ১টা', start: '10:00 AM', end: '1:00 PM', startHour: 10, endHour: 13 },
   B: { label: 'দুপুর ২টা – সন্ধ্যা ৬টা', start: '2:00 PM', end: '6:00 PM', startHour: 14, endHour: 18 },
   C: { label: 'সন্ধ্যা ৬টা – রাত ১০টা', start: '6:00 PM', end: '10:00 PM', startHour: 18, endHour: 22 },
 };
 
-export function generateReturnSchedule(fueledAt: Date): {
+export function generateReturnSchedule(fueledAtUTC: Date): {
   returnDate: Date;
+  bdDateString: string;
   slot: TimeSlot;
   slotLabel: string;
   nextAllowedAt: Date;
 } {
-  const returnDate = new Date(fueledAt);
-  returnDate.setDate(returnDate.getDate() + 3);
+  // 1. Shift exact milliseconds to simulate Bangladesh Time (UTC+6)
+  const BD_OFFSET_MS = 6 * 60 * 60 * 1000;
+  const bdTimeMs = fueledAtUTC.getTime() + BD_OFFSET_MS;
+  const bdDate = new Date(bdTimeMs); 
 
-  const currentHour = fueledAt.getHours();
+  // Instead of getHours() which shifts unpredictably by server location,
+  // we use getUTCHours() on the faux-shifted date to get exact BD hour.
+  const currentHour = bdDate.getUTCHours();
+  
   let slot: TimeSlot;
-
   if (currentHour >= 10 && currentHour < 13) {
     slot = 'A';
   } else if (currentHour >= 14 && currentHour < 18) {
@@ -26,21 +37,31 @@ export function generateReturnSchedule(fueledAt: Date): {
     slot = 'C';
   } else {
     slot = 'A';
-    if (currentHour >= 22) {
-      returnDate.setDate(returnDate.getDate() + 1);
-    }
+  }
+
+  // 2. Base the 3-day wait entirely on Bangladesh calendar date
+  const returnBdDate = new Date(bdTimeMs);
+  returnBdDate.setUTCDate(returnBdDate.getUTCDate() + 3);
+  
+  if (currentHour >= 22) {
+    returnBdDate.setUTCDate(returnBdDate.getUTCDate() + 1);
   }
 
   const window = TIME_WINDOWS[slot];
-  returnDate.setHours(window.startHour, 0, 0, 0);
+  returnBdDate.setUTCHours(window.startHour, 0, 0, 0);
 
-  const nextAllowedAt = new Date(returnDate);
+  // 3. Shift the faux BD back to absolute Real UTC Date for database timing tracking
+  const nextAllowedAtReal = new Date(returnBdDate.getTime() - BD_OFFSET_MS);
+
+  // Create the exact YYYY-MM-DD string as seen from Dhaka
+  const bdDateString = returnBdDate.toISOString().split('T')[0];
 
   return {
-    returnDate,
+    returnDate: nextAllowedAtReal,
+    bdDateString,
     slot,
     slotLabel: window.label,
-    nextAllowedAt,
+    nextAllowedAt: nextAllowedAtReal,
   };
 }
 
