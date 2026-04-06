@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'ইশ্বরগঞ্জ জ্বালানি নিয়ন্ত্রণ',
+    name: 'ঈশ্বরগঞ্জ জ্বালানি নিয়ন্ত্রণ',
     short_name: 'জ্বালানি সিস্টেম',
     description: 'Fuel rationing control system for Ishwarganj pilot',
     start_url: '/dashboard',

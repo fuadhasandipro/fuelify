@@ -166,7 +166,7 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 # If not using, Tesseract.js runs fully client-side
 GOOGLE_VISION_API_KEY=your_google_vision_key
 
-NEXT_PUBLIC_APP_NAME=ইশ্বরগঞ্জ জ্বালানি নিয়ন্ত্রণ
+NEXT_PUBLIC_APP_NAME=ঈশ্বরগঞ্জ জ্বালানি নিয়ন্ত্রণ
 NEXT_PUBLIC_RESTRICTION_DAYS=3
 ```
 
@@ -390,7 +390,7 @@ export async function POST(req: NextRequest) {
 
 ### Page 1: `/login` — Operator Login
 - Supabase email/password login
-- Bengali UI: "জ্বালানি নিয়ন্ত্রণ সিস্টেম — ইশ্বরগঞ্জ"
+- Bengali UI: "জ্বালানি নিয়ন্ত্রণ সিস্টেম — ঈশ্বরগঞ্জ"
 - Logo/branding area
 - After login → redirect to `/dashboard`
 
@@ -505,7 +505,7 @@ module.exports = withPWA({
 
 ```json
 {
-  "name": "ইশ্বরগঞ্জ জ্বালানি নিয়ন্ত্রণ",
+  "name": "ঈশ্বরগঞ্জ জ্বালানি নিয়ন্ত্রণ",
   "short_name": "জ্বালানি সিস্টেম",
   "description": "Fuel rationing control system for Ishwarganj pilot",
   "start_url": "/dashboard",

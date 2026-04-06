@@ -3,7 +3,7 @@ import './globals.css';
 import ServiceWorkerRegistration from '@/components/ServiceWorkerRegistration';
 
 export const metadata: Metadata = {
-  title: 'ইশ্বরগঞ্জ জ্বালানি নিয়ন্ত্রণ',
+  title: 'ঈশ্বরগঞ্জ জ্বালানি নিয়ন্ত্রণ',
   description: 'Fuel rationing control system for Ishwarganj pilot project',
   appleWebApp: {
     capable: true,

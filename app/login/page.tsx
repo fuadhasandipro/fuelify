@@ -48,7 +48,7 @@ export default function LoginPage() {
           জ্বালানি নিয়ন্ত্রণ সিস্টেম
         </h1>
         <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginTop: 6 }}>
-          ইশ্বরগঞ্জ পাইলট প্রকল্প
+          ঈশ্বরগঞ্জ পাইলট প্রকল্প
         </p>
       </div>
 
@@ -121,7 +121,7 @@ export default function LoginPage() {
       </div>
 
       <p style={{ textAlign: 'center', color: '#475569', fontSize: '0.8rem', marginTop: 24 }}>
-        ইশ্বরগঞ্জ উপজেলা পরিষদ
+        ঈশ্বরগঞ্জ উপজেলা পরিষদ
       </p>
     </div>
   );
