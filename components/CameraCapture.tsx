@@ -92,14 +92,16 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
         className="camera-container"
         style={{ height: 260, borderRadius: '16px 16px 0 0', background: '#000' }}
       >
-        {cameraActive ? (
+        <video
+          ref={videoRef}
+          playsInline
+          muted
+          autoPlay
+          style={{ width: '100%', height: '100%', objectFit: 'cover', display: cameraActive ? 'block' : 'none' }}
+        />
+        
+        {cameraActive && (
           <>
-            <video
-              ref={videoRef}
-              playsInline
-              muted
-              style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
-            />
             {/* Overlay guide */}
             <div className="camera-overlay">
               <div style={{ position: 'relative' }}>
@@ -130,7 +132,9 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
               <RefreshCw size={16} />
             </button>
           </>
-        ) : (
+        )}
+        
+        {!cameraActive && (
           <div style={{
             height: '100%', display: 'flex', flexDirection: 'column',
             alignItems: 'center', justifyContent: 'center', gap: 12,
