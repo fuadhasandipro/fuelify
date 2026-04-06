@@ -18,10 +18,15 @@ export async function performAIOcr(base64Image: string): Promise<string> {
       "model": "google/gemini-3.1-flash-lite-preview",
       "messages": [
         {
+          "role": "system",
+          "content": "You are a raw data API. You MUST output ONLY valid JSON and absolutely nothing else. Your output format MUST be: {\"plate\": \"[City] [Metro]-[Class] [2-digits]-[4-digits]\"}."
+        },
+        {
           "role": "user",
           "content": [
             {
-              "text": "Identify the license plate number in this image. Strict Rule: ONLY return the raw text of the license plate exactly in this specific format: '[City/District Name] [Metro if applicable]-[Class Letter] [2-digit series]-[4-digit number]'. You MUST include the correct spaces and hyphens exactly as shown in this example: 'ঢাকা মেট্রো-ল ৫০-০২০৩'. WARNING: Do NOT add spaces around hyphens (e.g., 'মেট্রো - ল' is WRONG). Do NOT explain, output markdown, or say anything else."
+              "type": "text",
+              "text": "Identify the license plate number. Do NOT describe the image. Do NOT say 'The license plate is'. Return ONLY JSON format. Example: {\"plate\": \"ঢাকা মেট্রো-ল ৫০-০২০৩\"}. WARNING: Do NOT add spaces around the hyphen. Never write conversational text."
             },
             {
               "type": "image_url",
@@ -44,5 +49,18 @@ export async function performAIOcr(base64Image: string): Promise<string> {
   const data = await response.json();
   const text = data.choices?.[0]?.message?.content?.trim() || "";
 
-  return text;
+  // Attempt to parse JSON from the response
+  let extractedPlate = text;
+  try {
+    // Sometimes LLMs wrap JSON in markdown block ```json ... ```
+    const jsonStr = text.replace(/```json/gi, '').replace(/```/gi, '').trim();
+    const parsed = JSON.parse(jsonStr);
+    if (parsed && parsed.plate) {
+      extractedPlate = parsed.plate;
+    }
+  } catch (e) {
+    console.warn("Failed to parse JSON from AI response, falling back to raw text:", text);
+  }
+
+  return extractedPlate;
 }
