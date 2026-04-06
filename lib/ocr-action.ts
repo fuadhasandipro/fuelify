@@ -26,7 +26,7 @@ export async function performAIOcr(base64Image: string): Promise<string> {
           "content": [
             {
               "type": "text",
-              "text": "Identify the license plate number. Do NOT describe the image. Do NOT say 'The license plate is'. Return ONLY JSON format. Example: {\"plate\": \"ঢাকা মেট্রো-ল ৫০-০২০৩\"}. WARNING: Do NOT add spaces around the hyphen. Never write conversational text."
+              "text": "Identify the license plate number. Do NOT describe the image. Do NOT say 'The license plate is'. Return ONLY JSON format. Example: {\"plate\": \"ঢাকা মেট্রো-ল ৫০-০২০৩\"}. CRITICAL WARNING: The license plate is entirely in BENGALI. Do not convert Bengali numerals to English numerals. Be extremely careful with the Bengali number 4 (৪) - do NOT misread it as English 8. Always output standard Bengali characters and numerals only. WARNING: Do NOT add spaces around the hyphen. Never write conversational text."
             },
             {
               "type": "image_url",
