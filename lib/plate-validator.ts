@@ -1,23 +1,30 @@
-// Bangladesh number plate formats:
-// Metro: ঢাকা মেট্রো ক ১১ ১২৩৪ → DHAKA-METRO-KA-11-1234
-// District: ময়মনসিংহ ক ১১ ১২৩৪ → MYMENSINGH-KA-11-1234
-// Numeric Latin format is also accepted: DHA-11-1234
+// Strict Bangladesh number plate formats:
+// Example: ঢাকা মেট্রো-ল ৫০-০২০৩
+// Format: [City/Metro]-(Class Letter) (2-digits)-(4-digits)
 
-const PLATE_PATTERN = /^[A-Z\u0980-\u09FF][A-Z0-9\u0980-\u09FF\s\-]{2,20}$/i;
+const STRICT_PLATE_PATTERN = /^([A-Z\u0980-\u09FF]+(?:\s[A-Z\u0980-\u09FF]+)*)-([A-Z\u0980-\u09FF]{1,2})\s([0-9\u09E6-\u09EF]{2})-([0-9\u09E6-\u09EF]{4})$/i;
 
 export function normalizeBangladeshPlate(raw: string): string {
-  return raw
+  let normalized = raw
     .toUpperCase()
-    .replace(/\s+/g, '-')
-    .replace(/[^A-Z0-9\u0980-\u09FF\-]/g, '')
+    // Remove unwanted characters but KEEP spaces and hyphens
+    .replace(/[^\sA-Z0-9\u0980-\u09FF\-]/g, '')
+    // Replace multiple spaces with a single space
+    .replace(/\s+/g, ' ')
     .trim();
+    
+  // Strictly remove spaces around hyphens
+  normalized = normalized.replace(/\s*-\s*/g, '-');
+  
+  return normalized;
 }
 
 export function isValidPlate(plate: string): boolean {
-  if (!plate || plate.length < 3) return false;
-  return PLATE_PATTERN.test(plate);
+  if (!plate) return false;
+  return STRICT_PLATE_PATTERN.test(plate.trim());
 }
 
 export function sanitizePlate(raw: string): string {
   return normalizeBangladeshPlate(raw);
 }
+

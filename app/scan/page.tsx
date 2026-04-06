@@ -1,16 +1,25 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Edit3, CheckCircle, Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
+import { isValidPlate } from '@/lib/plate-validator';
+import { createSupabaseBrowserClient } from '@/lib/supabase';
 
 const CameraCapture = dynamic(() => import('@/components/CameraCapture'), { ssr: false });
 
 type Step = 'capture' | 'ocr' | 'confirm';
 
+interface PumpStation {
+  id: string;
+  name: string;
+}
+
 export default function ScanPage() {
   const router = useRouter();
+  const supabase = createSupabaseBrowserClient();
+  
   const [step, setStep] = useState<Step>('capture');
   const [imageDataURL, setImageDataURL] = useState('');
   const [plateNumber, setPlateNumber] = useState('');
@@ -18,8 +27,29 @@ export default function ScanPage() {
   const [ocrLoading, setOcrLoading] = useState(false);
   const [vehicleType, setVehicleType] = useState<'motorcycle' | 'car' | 'other'>('motorcycle');
   const [fuelType, setFuelType] = useState<'octane' | 'petrol' | 'diesel'>('octane');
+  
+  // Pump Management
+  const [pumps, setPumps] = useState<PumpStation[]>([]);
+  const [selectedPumpId, setSelectedPumpId] = useState('');
+  
   const [checking, setChecking] = useState(false);
   const capturedFileRef = useRef<File | null>(null);
+
+  useEffect(() => {
+    async function loadPumps() {
+      const { data } = await supabase.from('pump_stations').select('id, name');
+      if (data) {
+        setPumps(data);
+        const lastPump = localStorage.getItem('fuelify_last_pump');
+        if (lastPump && data.some(p => p.id === lastPump)) {
+          setSelectedPumpId(lastPump);
+        } else if (data.length > 0) {
+          setSelectedPumpId(data[0].id);
+        }
+      }
+    }
+    loadPumps();
+  }, [supabase]);
 
   async function handleCapture(dataURL: string, file: File) {
     setImageDataURL(dataURL);
@@ -42,6 +72,18 @@ export default function ScanPage() {
 
   async function handleCheck() {
     if (!plateNumber.trim()) return;
+    
+    if (!isValidPlate(plateNumber)) {
+      alert('অবৈধ ফরম্যাট! সঠিক ফরম্যাট: ঢাকা মেট্রো-ল ৫০-০২০৩');
+      return;
+    }
+
+    if (!selectedPumpId) {
+      alert('দয়া করে পাম্প স্টেশন নির্বাচন করুন');
+      return;
+    }
+
+    localStorage.setItem('fuelify_last_pump', selectedPumpId);
     setChecking(true);
 
     try {
@@ -55,7 +97,7 @@ export default function ScanPage() {
       // Store result in sessionStorage to pass to result page
       sessionStorage.setItem(
         'checkResult',
-        JSON.stringify({ ...data, vehicleType, fuelType, imageDataURL })
+        JSON.stringify({ ...data, vehicleType, fuelType, imageDataURL, pumpStationId: selectedPumpId })
       );
       router.push('/result');
     } catch {
@@ -176,7 +218,7 @@ export default function ScanPage() {
                   className="input font-plate"
                   value={plateNumber}
                   onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
-                  placeholder="যেমন: MYMENSINGH-KA-11-1234"
+                  placeholder="যেমন: ঢাকা মেট্রো-ল ৫০-০২০৩"
                   style={{ fontSize: '1.1rem', fontWeight: 700, letterSpacing: '0.05em', paddingRight: 44 }}
                 />
                 <Edit3 size={16} color="#64748b" style={{ position: 'absolute', right: 14, top: '50%', transform: 'translateY(-50%)' }} />
@@ -232,13 +274,29 @@ export default function ScanPage() {
                 ))}
               </div>
             </div>
+            
+            {/* Pump Station Select */}
+            <div>
+              <label className="label">পাম্প স্টেশন</label>
+              <select
+                 className="input"
+                 value={selectedPumpId}
+                 onChange={e => setSelectedPumpId(e.target.value)}
+                 style={{ appearance: 'auto', padding: '12px' }}
+              >
+                 <option value="" disabled>পাম্প স্টেশন নির্বাচন করুন</option>
+                 {pumps.map(pump => (
+                    <option key={pump.id} value={pump.id}>{pump.name}</option>
+                 ))}
+              </select>
+            </div>
 
             {/* Check button */}
             <button
               id="check-btn"
               className="btn btn-primary"
               onClick={handleCheck}
-              disabled={checking || !plateNumber.trim()}
+              disabled={checking || !plateNumber.trim() || !selectedPumpId}
               style={{ marginTop: 4 }}
             >
               {checking ? (

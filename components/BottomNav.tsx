@@ -9,8 +9,7 @@ export default function BottomNav() {
 
   const items = [
     { href: '/dashboard', label: 'হোম', icon: LayoutDashboard },
-    { href: '/scan', label: 'স্ক্যান', icon: Camera },
-    { href: '/dashboard?tab=history', label: 'ইতিহাস', icon: Clock },
+    { href: '/scan', label: 'স্ক্যান', icon: Camera }
   ];
 
   return (

@@ -10,6 +10,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Plate number required' }, { status: 400 });
   }
 
+  if (!pumpStationId) {
+    return NextResponse.json({ error: 'Pump station selection is strictly required' }, { status: 400 });
+  }
+
   const supabase = await createSupabaseServerClient();
   const now = new Date();
   const schedule = generateReturnSchedule(now);
@@ -21,7 +25,7 @@ export async function POST(req: NextRequest) {
       plate_image_url: plateImageUrl ?? null,
       vehicle_type: vehicleType ?? 'other',
       fuel_type: fuelType ?? 'petrol',
-      pump_station_id: pumpStationId ?? null,
+      pump_station_id: pumpStationId,
       operator_id: operatorId ?? null,
       fueled_at: now.toISOString(),
       next_allowed_at: schedule.nextAllowedAt.toISOString(),

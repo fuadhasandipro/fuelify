@@ -17,6 +17,7 @@ interface CheckResult {
   vehicleType?: string;
   fuelType?: string;
   imageDataURL?: string;
+  pumpStationId?: string;
 }
 
 interface LoggedResult {
@@ -50,6 +51,7 @@ export default function ResultPage() {
           plateNumber: result.plateNumber,
           vehicleType: result.vehicleType ?? 'other',
           fuelType: result.fuelType ?? 'petrol',
+          pumpStationId: result.pumpStationId,
         }),
       });
       const data = await res.json();
