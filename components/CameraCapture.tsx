@@ -5,9 +5,10 @@ import { Camera, Upload, RefreshCw, X } from 'lucide-react';
 
 interface CameraCaptureProps {
   onCapture: (imageData: string, file: File) => void;
+  onAutoScan?: (imageData: string, file: File) => Promise<boolean>;
 }
 
-export default function CameraCapture({ onCapture }: CameraCaptureProps) {
+export default function CameraCapture({ onCapture, onAutoScan }: CameraCaptureProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -44,6 +45,47 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
       streamRef.current?.getTracks().forEach((t) => t.stop());
     };
   }, [startCamera, facingMode]);
+
+  useEffect(() => {
+    if (!cameraActive || !onAutoScan) return;
+
+    let isScanning = false;
+    const interval = setInterval(async () => {
+      if (isScanning) return;
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (!video || !canvas) return;
+      if (video.videoWidth === 0 || video.videoHeight === 0) return;
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(video, 0, 0);
+
+      const dataURL = canvas.toDataURL('image/jpeg', 0.85);
+
+      canvas.toBlob(async (blob) => {
+        if (!blob) return;
+        const file = new File([blob], 'auto-scan.jpg', { type: 'image/jpeg' });
+        
+        isScanning = true;
+        try {
+          const success = await onAutoScan(dataURL, file);
+          if (success) {
+            clearInterval(interval);
+            streamRef.current?.getTracks().forEach((t) => t.stop());
+          }
+        } catch {
+          // suppress loop errors
+        } finally {
+          isScanning = false;
+        }
+      }, 'image/jpeg', 0.85);
+    }, 2500); // Poll every 2.5 seconds
+
+    return () => clearInterval(interval);
+  }, [cameraActive, onAutoScan]);
 
   function capture() {
     const video = videoRef.current;
@@ -104,8 +146,9 @@ export default function CameraCapture({ onCapture }: CameraCaptureProps) {
           <>
             {/* Overlay guide */}
             <div className="camera-overlay">
-              <div style={{ position: 'relative' }}>
-                <div className="plate-frame" />
+              <div style={{ position: 'relative', width: '80%', aspectRatio: '3/1' }}>
+                <div className="plate-frame" style={{ width: '100%', height: '100%' }} />
+                {onAutoScan && <div className="laser-line" />}
                 <div className="corner corner-tl" />
                 <div className="corner corner-tr" />
                 <div className="corner corner-bl" />

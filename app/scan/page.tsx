@@ -70,6 +70,24 @@ export default function ScanPage() {
     }
   }
 
+  async function handleAutoScan(dataURL: string, file: File): Promise<boolean> {
+    try {
+      const { extractPlateNumber } = await import('@/lib/ocr');
+      const result = await extractPlateNumber(file);
+      if (result.plateNumber && isValidPlate(result.plateNumber)) {
+        setImageDataURL(dataURL);
+        capturedFileRef.current = file;
+        setPlateNumber(result.plateNumber);
+        setOcrConfidence(result.confidence);
+        setStep('confirm');
+        return true;
+      }
+    } catch {
+      // Allow it to keep scanning if it errors
+    }
+    return false;
+  }
+
   async function handleCheck() {
     if (!plateNumber.trim()) return;
     
@@ -162,7 +180,7 @@ export default function ScanPage() {
         {step === 'capture' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div style={{ overflow: 'hidden', borderRadius: 16, border: '1px solid #334155' }}>
-              <CameraCapture onCapture={handleCapture} />
+              <CameraCapture onCapture={handleCapture} onAutoScan={handleAutoScan} />
             </div>
             <div className="card" style={{ background: 'rgba(245,158,11,0.05)', borderColor: 'rgba(245,158,11,0.2)' }}>
               <p style={{ fontSize: '0.85rem', color: '#94a3b8', textAlign: 'center' }}>
